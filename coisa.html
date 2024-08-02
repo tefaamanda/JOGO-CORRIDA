@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Corrida com Competidores</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let carro;
+        let obstaculos = [];
+        let competidores = [];
+        let pontuacao = 0;
+        let numCompetidores = 3; // Número de competidores
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            carro = new Carro(width / 2, height - 60);
+            obstaculos.push(new Obstaculo());
+
+            // Criar competidores
+            for (let i = 0; i < numCompetidores; i++) {
+                competidores.push(new Competidor(random(width - 50), random(-200, -50)));
+            }
+        }
+
+        function draw() {
+            background(0);
+
+            carro.show();
+            carro.move();
+
+            for (let i = obstaculos.length - 1; i >= 0; i--) {
+                obstaculos[i].show();
+                obstaculos[i].move();
+
+                if (obstaculos[i].offScreen()) {
+                    obstaculos.splice(i, 1);
+                    pontuacao++;
+                    obstaculos.push(new Obstaculo());
+                }
+
+                if (obstaculos[i].hits(carro)) {
+                    noLoop();
+                    textSize(64);
+                    fill(255, 0, 0);
+                    textAlign(CENTER, CENTER);
+                    text('Game Over', width / 2, height / 2);
+                    textSize(32);
+                    text(`Pontuação: ${pontuacao}`, width / 2, height / 2 + 50);
+                    return;
+                }
+            }
+
+            // Mostrar e atualizar competidores
+            for (let comp of competidores) {
+                comp.show();
+                comp.move();
+                if (comp.hits(carro)) {
+                    noLoop();
+                    textSize(64);
+                    fill(255, 0, 0);
+                    textAlign(CENTER, CENTER);
+                    text('Game Over', width / 2, height / 2);
+                    textSize(32);
+                    text(`Pontuação: ${pontuacao}`, width / 2, height / 2 + 50);
+                    return;
+                }
+            }
+
+            fill(255);
+            textSize(32);
+            text(`Pontuação: ${pontuacao}`, 10, 30);
+        }
+
+        function keyPressed() {
+            if (keyCode === LEFT_ARROW) {
+                carro.setDir(-5);
+            } else if (keyCode === RIGHT_ARROW) {
+                carro.setDir(5);
+            }
+        }
+
+        function keyReleased() {
+            if (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) {
+                carro.setDir(0);
+            }
+        }
+
+        class Carro {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.w = 50;
+                this.h = 60;
+                this.dir = 0;
+            }
+
+            show() {
+                fill(255, 0, 0);
+                rect(this.x, this.y, this.w, this.h);
+            }
+
+            move() {
+                this.x += this.dir;
+                this.x = constrain(this.x, 0, width - this.w);
+            }
+
+            setDir(dir) {
+                this.dir = dir;
+            }
+        }
+
+        class Obstaculo {
+            constructor() {
+                this.w = 50;
+                this.h = 60;
+                this.x = random(width - this.w);
+                this.y = -this.h;
+                this.speed = 5;
+            }
+
+            show() {
+                fill(128);
+                rect(this.x, this.y, this.w, this.h);
+            }
+
+            move() {
+                this.y += this.speed;
+            }
+
+            offScreen() {
+                return this.y > height;
+            }
+
+            hits(carro) {
+                return !(carro.x > this.x + this.w ||
+                         carro.x + carro.w < this.x ||
+                         carro.y > this.y + this.h ||
+                         carro.y + carro.h < this.y);
+            }
+        }
+
+        class Competidor {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.w = 50;
+                this.h = 60;
+                this.speed = random(3, 7);
+            }
+
+            show() {
+                fill(0, 255, 0);
+                rect(this.x, this.y, this.w, this.h);
+            }
+
+            move() {
+                this.y += this.speed;
+                if (this.y > height) {
+                    this.y = -this.h;
+                    this.x = random(width - this.w);
+                }
+            }
+
+            hits(carro) {
+                return !(carro.x > this.x + this.w ||
+                         carro.x + carro.w < this.x ||
+                         carro.y > this.y + this.h ||
+                         carro.y + carro.h < this.y);
+            }
+        }
+    </script>
+</body>
+</html>
